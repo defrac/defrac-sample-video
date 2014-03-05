@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script src="videoSample/app.js" async onload="main()"></script>
+    <title>Video Sample</title>
+    <style>
+      body, html { background: #121212; padding: 0; margin: 0; width: 100%; height: 100% }
+      canvas { margin: 0; padding: 0; margin: 0; display: block; width: 100%; height: 100% }
+      div { background: #000; position: absolute; top: 0; left: 0; width: 640; height: 480px; }
+    </style>
+    <script>
+      function layout(){
+        var stage = document.getElementById('defrac-stage');
+        var width = window.innerWidth;
+        var height = window.innerHeight
+        stage.style.width = width+'px';
+        stage.style.height = height+'px';
+      }
+      window.addEventListener('resize',layout);
+      window.onload=layout;
+    </script>
+  </head>
+  <body>
+    <div><canvas id="defrac-stage"></canvas></div></body>
+</html>
