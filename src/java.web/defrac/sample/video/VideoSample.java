@@ -15,6 +15,7 @@ import defrac.lang.Procedure;
 import defrac.signal.SignalBinding;
 import intrinsic.*;
 
+import javax.annotation.Nonnull;
 import java.lang.Math;
 import java.lang.String;
 
@@ -84,6 +85,12 @@ class VideoSample extends GenericApp {
         });
       }
     });
+  }
+
+  @Override
+  protected void onCreationFailure(@Nonnull Throwable reason) {
+    window.alert(toJSString("It looks like your browser doesn't support WebGL :/"));
+    super.onCreationFailure(reason);
   }
 
   private void onVideoPlaying() {
