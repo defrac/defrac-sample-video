@@ -17,10 +17,8 @@ import intrinsic.*;
 
 import javax.annotation.Nonnull;
 import java.lang.Math;
-import java.lang.String;
 
 import static defrac.lang.Bridge.toFunction;
-import static defrac.lang.Bridge.toJSString;
 
 /**
  *
@@ -52,16 +50,16 @@ class VideoSample extends GenericApp {
     stage().backgroundColor(0xff000000);
 
     // Create the video element
-    video = (HTMLVideoElement)window.document.createElement(toJSString("video"));
+    video = (HTMLVideoElement)window.document.createElement("video");
 
     // Make sure we can play WebM files
-    if(video.canPlayType(toJSString("video/webm")).length == 0) {
-      window.alert(toJSString("Can't play WebM videos :/"));
+    if(video.canPlayType("video/webm").length() == 0) {
+      window.alert("Can't play WebM videos :/");
     }
 
     // Set everything up and start playing the video
     video.autoplay = true;
-    video.src = toJSString("videoSample/big-buck-bunny_trailer.webm");
+    video.src = "videoSample/big-buck-bunny_trailer.webm";
     video.onplaying = toFunction(new Procedure<Event>() {
       @Override
       public void apply(Event event) {
@@ -89,7 +87,7 @@ class VideoSample extends GenericApp {
 
   @Override
   protected void onCreationFailure(@Nonnull Throwable reason) {
-    window.alert(toJSString("It looks like your browser doesn't support WebGL :/"));
+    window.alert("It looks like your browser doesn't support WebGL :/");
     super.onCreationFailure(reason);
   }
 
@@ -147,7 +145,7 @@ class VideoSample extends GenericApp {
             try {
               gl.assertNoError();
             } catch(Throwable t) {
-              window.alert(toJSString(t.getMessage()));
+              window.alert(t.getMessage());
             }
             return texture;
           }
