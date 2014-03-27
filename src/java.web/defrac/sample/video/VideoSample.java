@@ -9,7 +9,6 @@ import defrac.geom.Point;
 import defrac.gl.GL;
 import defrac.gl.GLTexture;
 import defrac.gl.WebGLSubstrate;
-import defrac.lang.Function;
 import defrac.lang.Pair;
 import defrac.lang.Procedure;
 import defrac.signal.SignalBinding;
@@ -120,34 +119,23 @@ class VideoSample extends GenericApp {
     //
     // We choose transient because it resides only in VRAM and is therefore
     // perfect for this use case
-    textureData = TextureData.Transient.fromFunction(
-        new Function<Pair<TextureData, GL>, GLTexture>() {
+    textureData = TextureData.Transient.fromProcedure(
+        new Procedure<Pair<TextureData, GL>>() {
           @Override
-          public GLTexture apply(Pair<TextureData, GL> textureDataGLPair) {
-            // The TextureData.Transient.fromFunction method allows us to provide
-            // a TextureData that is created on-demand. This means for the very first
-            // time the texture is displayed we get called and are responsible for
-            // creating a GLTexture handle.
+          public void apply(Pair<TextureData, GL> textureDataGLPair) {
+            // The TextureData.Transient.fromProcedure method allows us to provide
+            // a TextureData that is created on-demand. This call should happen only
+            // once but if a context loss occurs we might get asked again.
             //
-            // This call should happen only once but if a context loss occurs we
-            // might get asked again.
-            GL gl = textureDataGLPair._2;
-            GLTexture texture = gl.createTexture();
-            gl.bindTexture(GL.TEXTURE_2D, texture);
-            gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, GL.CLAMP_TO_EDGE);
-            gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, GL.CLAMP_TO_EDGE);
-            gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.LINEAR);
-            gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, GL.LINEAR);
-            // This is why we need access to the WebGLRenderingContext. It allows us
-            // to upload the HTMLVideoElement as a texture.
+            // For the web, we want to provide the content of a video as the initial
+            // texture. This is why we need access to the WebGLRenderingContext. It
+            // allows us to upload the HTMLVideoElement as a texture.
             webGL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, video);
-            gl.bindTexture(GL.TEXTURE_2D, null);
             try {
-              gl.assertNoError();
+              textureDataGLPair._2.assertNoError();
             } catch(Throwable t) {
               window.alert(t.getMessage());
             }
-            return texture;
           }
         },
         VIDEO_WIDTH, VIDEO_HEIGHT,
