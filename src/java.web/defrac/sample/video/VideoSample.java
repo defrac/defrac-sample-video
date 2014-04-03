@@ -132,7 +132,7 @@ class VideoSample extends GenericApp {
             // allows us to upload the HTMLVideoElement as a texture.
             webGL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, video);
             try {
-              textureDataGLPair._2.assertNoError();
+              textureDataGLPair.y.assertNoError();
             } catch(Throwable t) {
               window.alert(t.getMessage());
             }
