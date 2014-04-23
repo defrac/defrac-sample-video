@@ -12,7 +12,7 @@ import defrac.gl.WebGLSubstrate;
 import defrac.lang.Pair;
 import defrac.lang.Procedure;
 import defrac.signal.SignalBinding;
-import intrinsic.*;
+import defrac.web.*;
 
 import javax.annotation.Nonnull;
 import java.lang.Math;
