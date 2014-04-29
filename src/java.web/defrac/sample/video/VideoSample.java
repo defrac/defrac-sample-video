@@ -4,14 +4,14 @@ import defrac.app.Bootstrap;
 import defrac.app.GenericApp;
 import defrac.display.*;
 import defrac.event.EnterFrameEvent;
+import defrac.event.EventBinding;
+import defrac.event.EventListener;
 import defrac.event.Events;
 import defrac.geom.Point;
 import defrac.gl.GL;
 import defrac.gl.GLTexture;
 import defrac.gl.WebGLSubstrate;
-import defrac.lang.Pair;
 import defrac.lang.Procedure;
-import defrac.signal.SignalBinding;
 import defrac.web.*;
 
 import javax.annotation.Nonnull;
@@ -42,7 +42,7 @@ class VideoSample extends GenericApp {
   Image[] videos = new Image[VIDEOS_TOTAL];
   Point[] velocities = new Point[VIDEOS_TOTAL];
   float videoWidth, videoHeight;
-  SignalBinding<EnterFrameEvent> frameLoop;
+  EventBinding<EnterFrameEvent> frameLoop;
 
   @Override
   protected void onCreate() {
@@ -68,13 +68,13 @@ class VideoSample extends GenericApp {
     video.onended = toFunction(new Procedure<Event>() {
       @Override
       public void apply(Event event) {
-        Events.onEnterFrame.detach(frameLoop);
-        frameLoop = Events.onEnterFrame.attach(new Procedure<EnterFrameEvent>() {
+        Events.onEnterFrame.remove(frameLoop);
+        frameLoop = Events.onEnterFrame.add(new EventListener<EnterFrameEvent>() {
           @Override
-          public void apply(EnterFrameEvent enterFrameEvent) {
-            if(stage().alpha() <= 0.0f) {
+          public void onEvent(EnterFrameEvent enterFrameEvent) {
+            if (stage().alpha() <= 0.0f) {
               stage().alpha(0.0f);
-              Events.onEnterFrame.detach(frameLoop);
+              Events.onEnterFrame.remove(frameLoop);
             } else {
               stage().alpha(stage().alpha() - 0.01f);
             }
@@ -119,11 +119,13 @@ class VideoSample extends GenericApp {
     //
     // We choose transient because it resides only in VRAM and is therefore
     // perfect for this use case
-    textureData = TextureData.Transient.fromProcedure(
-        new Procedure<Pair<TextureData, GL>>() {
+    textureData = TextureData.Transient.fromFactory(
+        new TextureData.Transient.Factory() {
           @Override
-          public void apply(Pair<TextureData, GL> textureDataGLPair) {
-            // The TextureData.Transient.fromProcedure method allows us to provide
+          public void texImage2D(@Nonnull final TextureData.Transient textureData,
+                                 @Nonnull final GL gl, final int target,
+                                 final int level, final int internalFormat, final int border) {
+            // The TextureData.Transient.fromFactory method allows us to provide
             // a TextureData that is created on-demand. This call should happen only
             // once but if a context loss occurs we might get asked again.
             //
@@ -132,8 +134,8 @@ class VideoSample extends GenericApp {
             // allows us to upload the HTMLVideoElement as a texture.
             webGL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, video);
             try {
-              textureDataGLPair.y.assertNoError();
-            } catch(Throwable t) {
+              gl.assertNoError();
+            } catch (Throwable t) {
               window.alert(t.getMessage());
             }
           }
@@ -141,7 +143,8 @@ class VideoSample extends GenericApp {
         VIDEO_WIDTH, VIDEO_HEIGHT,
         TextureDataFormat.RGBA,
         TextureDataRepeat.NO_REPEAT,
-        TextureDataSmoothing.LINEAR_WITHOUT_MIPMAP);
+        TextureDataSmoothing.LINEAR_WITHOUT_MIPMAP
+    );
 
     // Now that we have a TextureData, we might as well just use it and
     // display it as often as we want.
@@ -161,9 +164,9 @@ class VideoSample extends GenericApp {
       }
     }
 
-    frameLoop = Events.onEnterFrame.attach(new Procedure<EnterFrameEvent>() {
+    frameLoop = Events.onEnterFrame.add(new EventListener<EnterFrameEvent>() {
       @Override
-      public void apply(EnterFrameEvent enterFrameEvent) {
+      public void onEvent(EnterFrameEvent enterFrameEvent) {
         onEnterFrame();
       }
     });
