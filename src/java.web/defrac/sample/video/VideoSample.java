@@ -38,7 +38,6 @@ class VideoSample extends GenericApp {
 
   TextureData textureData;
   HTMLVideoElement video;
-  WebGLRenderingContext webGL;
   Image[] videos = new Image[VIDEOS_TOTAL];
   Point[] velocities = new Point[VIDEOS_TOTAL];
   float videoWidth, videoHeight;
@@ -95,25 +94,6 @@ class VideoSample extends GenericApp {
     // need to go deep down into the OpenGL dungeon and extract
     // the lowest layer, which is the WebGLRenderingContext
 
-    // Level #1: The platform agnostic and enriched OpenGL interface
-    GL gl = stage().gl();
-
-    // Level #2: The substrate is the platform specific
-    //           implementation and basis of the enriched API
-    //
-    //           Note: We know it is a WebGLSubstrate in the case
-    //           of the web export and we have to introduce a cast.
-    WebGLSubstrate substrate = (WebGLSubstrate)gl.substrate();
-
-    // Level #3: The actual WebGLRenderingContext which the
-    //           WebGLSubstrate keeps a reference to. Now we are
-    //           looking at the actual WebGL api and can call methods
-    //           like texImage2D that take a HTMLVideoElement
-    //
-    //           The GL object we retrieved in level #1 will make calls
-    //           on this object.
-    webGL = substrate.context();
-
     // The strategy to display video is to use a TextureData and update
     // its contents on each frame.
     //
@@ -132,7 +112,7 @@ class VideoSample extends GenericApp {
             // For the web, we want to provide the content of a video as the initial
             // texture. This is why we need access to the WebGLRenderingContext. It
             // allows us to upload the HTMLVideoElement as a texture.
-            webGL.texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, video);
+            toWebGL(gl).texImage2D(GL.TEXTURE_2D, 0, GL.RGBA, GL.RGBA, GL.UNSIGNED_BYTE, video);
             try {
               gl.assertNoError();
             } catch (Throwable t) {
@@ -177,22 +157,17 @@ class VideoSample extends GenericApp {
     // In order to do so we must get a hold of the GLTexture we want to
     // modify first. This is done by asking a TextureScope for the GLTexture
     // associated with a TextureData. Lucky for us, the Stage is a TextureScope
-    GLTexture texture = stage().getOrCreateTexture(textureData);
+    final GLTexture texture = stage().getOrCreateTexture(textureData);
 
-    // Also, we want need to make some GL calls
-    GL gl = stage().gl();
-
-    // This is non-standard OpenGL. If we start to modify the OpenGL state machine
-    // it is our responsibility for not breaking things. The display list is not
-    // forgiving and makes certain assumptions about this state. Lucky for us though,
-    // we can simply say "pushState" and "popState" and the delta of the modified
-    // state will be applied. In this case, the delta will be probably empty but
-    // it is best practice to do so.
-    gl.pushState(); {
-      gl.bindTexture(GL.TEXTURE_2D, texture);
-      webGL.texSubImage2D(GL.TEXTURE_2D, 0, 0, 0, GL.RGBA, GL.UNSIGNED_BYTE, video);
-      gl.bindTexture(GL.TEXTURE_2D, null);
-    } gl.popState();
+    // Update the texture
+    stage().execGL(new GLBlock() {
+      @Override
+      public void execGL(@Nonnull GL gl) {
+        gl.bindTexture(GL.TEXTURE_2D, texture);
+        toWebGL(gl).texSubImage2D(GL.TEXTURE_2D, 0, 0, 0, GL.RGBA, GL.UNSIGNED_BYTE, video);
+        gl.bindTexture(GL.TEXTURE_2D, null);
+      }
+    });
 
     // Move the videos around ...
     for(int i = 0; i < VIDEOS_TOTAL; ++i) {
@@ -218,6 +193,27 @@ class VideoSample extends GenericApp {
         velocities[i].y = 0.1f + (float)Math.random() * 4.0f;
       }
     }
+  }
+
+  WebGLRenderingContext toWebGL(GL gl) {
+    // Level #1: The platform agnostic and enriched OpenGL interface
+    //           is the given parameter
+
+    // Level #2: The substrate is the platform specific
+    //           implementation and basis of the enriched API
+    //
+    //           Note: We know it is a WebGLSubstrate in the case
+    //           of the web export and we have to introduce a cast.
+    WebGLSubstrate substrate = (WebGLSubstrate)gl.substrate();
+
+    // Level #3: The actual WebGLRenderingContext which the
+    //           WebGLSubstrate keeps a reference to. Now we are
+    //           looking at the actual WebGL API and can call methods
+    //           like texImage2D that take a HTMLVideoElement
+    //
+    //           The GL object we retrieved in level #1 will make calls
+    //           on this object.
+    return substrate.context();
   }
 
   private static float random() {
