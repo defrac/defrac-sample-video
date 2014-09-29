@@ -4,10 +4,12 @@
   "identifier": "videoSample",
   "main": "defrac.sample.video.VideoSample",
   "version": "1.0",
-  "targets": ["web"],
+  "targets": [
+    "web"
+  ],
   "debug": false,
   "web": {
     "strictMode": "false",
-    "debug": "false"
+    "debug": "true"
   }
 }
