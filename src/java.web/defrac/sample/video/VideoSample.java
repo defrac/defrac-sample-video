@@ -11,13 +11,10 @@ import defrac.geom.Point;
 import defrac.gl.GL;
 import defrac.gl.GLTexture;
 import defrac.gl.WebGLSubstrate;
-import defrac.lang.Procedure;
 import defrac.web.*;
 
 import javax.annotation.Nonnull;
 import java.lang.Math;
-
-import static defrac.lang.Bridge.toFunction;
 
 /**
  *
@@ -58,15 +55,15 @@ class VideoSample extends GenericApp {
     // Set everything up and start playing the video
     video.autoplay = true;
     video.src = "videoSample/big-buck-bunny_trailer.webm";
-    video.onplaying = toFunction(new Procedure<Event>() {
+    video.onplaying = new defrac.web.EventListener<Event>() {
       @Override
-      public void apply(Event event) {
+      public void onEvent(Event event) {
         onVideoPlaying();
       }
-    });
-    video.onended = toFunction(new Procedure<Event>() {
+    };
+    video.onended = new defrac.web.EventListener<Event>() {
       @Override
-      public void apply(Event event) {
+      public void onEvent(Event event) {
         Events.onEnterFrame.remove(frameLoop);
         frameLoop = Events.onEnterFrame.add(new EventListener<EnterFrameEvent>() {
           @Override
@@ -80,7 +77,7 @@ class VideoSample extends GenericApp {
           }
         });
       }
-    });
+    };
   }
 
   @Override
