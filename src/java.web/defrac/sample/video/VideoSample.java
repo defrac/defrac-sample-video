@@ -54,7 +54,7 @@ class VideoSample extends GenericApp {
 
     // Set everything up and start playing the video
     video.autoplay = true;
-    video.src = "videoSample/big-buck-bunny_trailer.webm";
+    video.src = "com.defrac.sample.video/big-buck-bunny_trailer.webm";
     video.onplaying = new defrac.web.EventListener<Event>() {
       @Override
       public void onEvent(Event event) {
