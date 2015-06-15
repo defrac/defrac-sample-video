@@ -10,8 +10,8 @@
   ],
 
   "web": {
-    "strictMode": "false",
-    "debug": "false",
-    "optimize": "true"
+    "strictMode": false,
+    "debug": false,
+    "optimize": true
   }
 }
