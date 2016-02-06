@@ -8,6 +8,7 @@ import defrac.gl.GL;
 import defrac.gl.GLSubstrate;
 import defrac.gl.GLTexture;
 import defrac.gl.WebGLSubstrate;
+import defrac.ui.ContentScreen;
 import defrac.ui.DisplayList;
 import defrac.ui.FrameBuilder;
 import defrac.web.HTMLVideoElement;
@@ -17,10 +18,12 @@ import defrac.web.Window;
 
 import javax.annotation.Nonnull;
 
+import static defrac.lang.Preconditions.checkNotNull;
+
 /**
  *
  */
-class VideoSample extends defrac.ui.Screen {
+class VideoSample extends ContentScreen {
   public static void main(String[] args) {
     FrameBuilder.forScreen(new VideoSample()).show();
   }
@@ -52,7 +55,7 @@ class VideoSample extends defrac.ui.Screen {
       stage.backgroundColor(0xff000000);
 
       // Create the video element
-      video = (HTMLVideoElement)window.document.createElement("video");
+      video = (HTMLVideoElement)checkNotNull(window.document).createElement("video");
 
       // Make sure we can play WebM files
       if(video.canPlayType("video/webm").length() == 0) {
